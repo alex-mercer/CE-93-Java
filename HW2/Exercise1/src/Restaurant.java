@@ -21,6 +21,7 @@ public class Restaurant {
     int fund;
     Food[] foods;
     List<Customer> customers;
+    List<Waiter> customersWaiters;
     List<Customer> allCustomers;
     Waiter[] waiters;
     int[] waitersTurns;
@@ -35,11 +36,13 @@ public class Restaurant {
         this.capacity = capacity;
         this.fund = Restaurant.INITIAL_FUND;
         this.customers = new ArrayList<Customer>();
+        this.customersWaiters = new ArrayList<Waiter>();
         this.allCustomers = new ArrayList<Customer>();
         //Generating foods
         foods = new Food[100];
         for (int i = 0; i < 100; i++) {
-            foods[i] = new Food(i + 1, FOOD_QUALITIES[(i % 20) / 5], 0, NATIONALITIES[i / 20], (i % 20) < 15 ? 'v' : 'n');
+            int foodQuality = FOOD_QUALITIES[(i % 20) / 5];
+            foods[i] = new Food(i + 1, foodQuality, foodQuality, NATIONALITIES[i / 20], (i % 20) < 15 ? 'n' : 'v');
         }
         //Generating Waiters
         waiters = new Waiter[WAITERS_COUNT];
@@ -86,8 +89,10 @@ public class Restaurant {
         if (customer.sad())
             return;
         maxId = Math.max(maxId, id);
-        if (customers.size() == capacity)
-            customers = customers.subList(capacity / 5, capacity);
+        if (customers.size() == capacity) {
+            for (int i = 0; i < capacity / 5; i++)
+                settlement(customers.get(0));
+        }
         Food orderedFood = customer.getOrderedFood();
         orderedFood.setNumber(orderedFood.getNumber() - 1);
         checkFoods();
@@ -98,11 +103,9 @@ public class Restaurant {
         int waiterId = waiterType * 5 + waitersTurns[waiterType];
         waitersTurns[waiterType] = (waitersTurns[waiterType] + 1) % 5;
         waiters[waiterId].setSalary(Waiter.WAITER_TIP);
-        customer.money -= 3;
-        waiters[waiterId].incrementCustomers();
-        if (waiters[waiterId].getCustomers() % 10 == 0)
-            waiters[waiterId].setSalary(10);
+        customer.money -= Waiter.WAITER_TIP;
         customers.add(customer);
+        customersWaiters.add(waiters[waiterId]);
         allCustomers.add(customer);
     }
 
@@ -110,7 +113,13 @@ public class Restaurant {
         int cost = customer.leaving();
         fund += cost;
         customer.money -= cost;
-        customers.remove(customer);
+        int index = customers.indexOf(customer);
+        customers.remove(index);
+        Waiter customerWaiter = customersWaiters.get(index);
+        customerWaiter.incrementCustomers();
+        if (customerWaiter.getCustomers() % 10 == 0)
+            customerWaiter.setSalary(10);
+        customersWaiters.remove(index);
     }
 
     public Waiter[] getWaiters() {
@@ -251,6 +260,7 @@ class Menu {
 
     public Menu(Food[] retaurantFoods, Customer myCustomer) {
         this.myCustomer = myCustomer;
+        menuFoods = new ArrayList<Food>();
         for (Food food : retaurantFoods) {
             if (food.getFoodType() == 'n' && myCustomer.getFoodType() == 'v')//handling vegetarian customers
                 continue;
