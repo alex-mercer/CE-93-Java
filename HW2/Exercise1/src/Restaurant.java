@@ -9,6 +9,12 @@ import java.util.List;
 public class Restaurant {
 
     public static final char[] NATIONALITIES = new char[]{'c', 'i', 'f', 'h', 'p', 'e'};
+    public static final int INITIAL_FUND = 10000;
+    public static final int WAITERS_PER_NATIONALITY = 5;
+    public static final int WAITERS_COUNT = WAITERS_PER_NATIONALITY * NATIONALITIES.length;
+    public static final int DISCOUNT_AMOUNT = 1;
+    public static final int COOKING_QUANTITY = 10;
+    public static final int COOKING_COST_PER_FOOD = 10;
     static int maxId = 0;//maxId + 1 is always a new Id
     String name;
     int capacity;
@@ -18,6 +24,7 @@ public class Restaurant {
     List<Customer> allCustomers;
     Waiter[] waiters;
     int[] waitersTurns;
+    public static final int[] FOOD_QUALITIES = new int[]{10, 7, 5, 8};
 
     public Restaurant(String name) {
         this(name, 50);
@@ -26,22 +33,21 @@ public class Restaurant {
     public Restaurant(String name, int capacity) {
         this.name = name;
         this.capacity = capacity;
-        this.fund = 10000;//TODO
+        this.fund = Restaurant.INITIAL_FUND;
         this.customers = new ArrayList<Customer>();
         this.allCustomers = new ArrayList<Customer>();
         //Generating foods
         foods = new Food[100];
-        int[] food_qualities = {10, 7, 5, 8};//TODO move this to a better place
         for (int i = 0; i < 100; i++) {
-            foods[i] = new Food(i + 1, food_qualities[(i % 20) / 5], 0, NATIONALITIES[i / 20], (i % 20) < 15 ? 'v' : 'n');
+            foods[i] = new Food(i + 1, FOOD_QUALITIES[(i % 20) / 5], 0, NATIONALITIES[i / 20], (i % 20) < 15 ? 'v' : 'n');
         }
         //Generating Waiters
-        waiters = new Waiter[30];//TODO:constant export
-        for (int i = 0; i < 30; i++) {
-            waiters[i] = new Waiter(i + 1, NATIONALITIES[i / 5]);
+        waiters = new Waiter[WAITERS_COUNT];
+        for (int i = 0; i < WAITERS_COUNT; i++) {
+            waiters[i] = new Waiter(i + 1, NATIONALITIES[i / WAITERS_PER_NATIONALITY]);
         }
-        waitersTurns = new int[6];
-        for (int i = 0; i < 6; i++)
+        waitersTurns = new int[NATIONALITIES.length];
+        for (int i = 0; i < NATIONALITIES.length; i++)
             waitersTurns[i] = 0;
         checkFoods();
     }
@@ -49,8 +55,8 @@ public class Restaurant {
     public void cooking(char nationality) {
         for (Food food : foods) {
             if (food.getNationality() == nationality) {
-                food.setNumber(10);
-                fund -= 10 * 10;//TODO: first 10 is number of foods second is each food cost
+                food.setNumber(COOKING_QUANTITY);
+                fund -= COOKING_QUANTITY * COOKING_COST_PER_FOOD;
             }
         }
     }
@@ -68,26 +74,20 @@ public class Restaurant {
 
     public void CustomerEntry(int id, char nationality, char foodType, char menuType,
                               int money, int vote) {
-        if (customers.size() == capacity)
-            customers = customers.subList(capacity / 5, capacity);
         boolean takhfif = false;
-        maxId = Math.max(maxId, id);
-        for (Customer c : allCustomers) {
-            if (c.getId() == id) {
-                if (c.getNationality() == nationality)
-                    takhfif = true;
-                else {
-                    maxId++;
-                    id = maxId;
-                }
-                break;
-            }
-        }
+        for (Customer c : allCustomers)
+            if (c.getId() == id && c.getNationality() == nationality)
+                takhfif = true;
+        if (!takhfif)
+            id = maxId + 1;
         Customer customer = new Customer(id, nationality, foodType, menuType, money, vote);
         customer.setTakhfif(takhfif);
         Menu menu = new Menu(getAvailableFoods(), customer);
         if (customer.sad())
             return;
+        maxId = Math.max(maxId, id);
+        if (customers.size() == capacity)
+            customers = customers.subList(capacity / 5, capacity);
         Food orderedFood = customer.getOrderedFood();
         orderedFood.setNumber(orderedFood.getNumber() - 1);
         checkFoods();
@@ -97,7 +97,7 @@ public class Restaurant {
                 waiterType = i;
         int waiterId = waiterType * 5 + waitersTurns[waiterType];
         waitersTurns[waiterType] = (waitersTurns[waiterType] + 1) % 5;
-        waiters[waiterId].setSalary(3);//TODO:constant export
+        waiters[waiterId].setSalary(Waiter.WAITER_TIP);
         customer.money -= 3;
         waiters[waiterId].incrementCustomers();
         if (waiters[waiterId].getCustomers() % 10 == 0)
@@ -151,10 +151,9 @@ public class Restaurant {
     }
 }
 
-class Food
+class Food extends IDOwner
 
 {
-    int id;
     int qualityCount;
     int internationalQualityCount;
     int qualitySum;
@@ -164,17 +163,13 @@ class Food
     int number;
 
     public Food(int id, int quality, int internationalQuality, char nationality, char foodType) {
-        this.id = id;
+        super(id);
         this.qualitySum = quality;
         this.qualityCount = 1;
         this.internationalQualitySum = internationalQuality;
         this.internationalQualityCount = 1;
         this.nationality = nationality;
         this.foodType = foodType;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public int getQuality() {
@@ -216,11 +211,11 @@ class Food
     }
 
     public int getLocalPrice() {
-        return 10 + 5 * getQuality();//TODO:export 10 as constant
+        return Restaurant.COOKING_COST_PER_FOOD + 5 * getQuality();
     }
 
     public int getInternatinoalPrice() {
-        return 10 + 5 * getInternationalQuality();
+        return Restaurant.COOKING_COST_PER_FOOD + 5 * getInternationalQuality();
     }
 
     public int getPrice(char nationality) {
@@ -261,7 +256,7 @@ class Menu {
                 continue;
             if (food.getNationality() != myCustomer.getMenuType())
                 continue;
-            int price = getFoodPrice(food) + 3;//TODO:extract constant
+            int price = getFoodPrice(food) + Waiter.WAITER_TIP;
             if (price > myCustomer.getMoney()) continue;
             menuFoods.add(food);
         }
@@ -276,7 +271,7 @@ class Menu {
 
     int getFoodPrice(Food food) {
         int price = food.getPrice(myCustomer.getNationality());
-        if (myCustomer.takhfif()) price -= 1;//TODO:extract constant
+        if (myCustomer.takhfif()) price -= Restaurant.DISCOUNT_AMOUNT;
         return price;
     }
 
@@ -289,8 +284,20 @@ class Menu {
     }
 }
 
-class Customer {
+class IDOwner {
+
     int id;
+
+    IDOwner(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+}
+
+class Customer extends IDOwner {
     char nationality;
     char foodType;
     char menuType;
@@ -301,7 +308,7 @@ class Customer {
     boolean isSad;
 
     Customer(int id, char nationality, char foodType, char menuType, int money, int vote) {
-        this.id = id;
+        super(id);
         this.nationality = nationality;
         this.foodType = foodType;
         this.menuType = menuType;
@@ -343,10 +350,6 @@ class Customer {
         this.menu = menu;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public char getNationality() {
         return nationality;
     }
@@ -372,14 +375,14 @@ class Customer {
     }
 }
 
-class Waiter {
-    int id;
+class Waiter extends IDOwner {
+    public static final int WAITER_TIP = 3;
     char nationality;
     int customers = 0;
     int salary = 0;
 
     Waiter(int id, char nationality) {
-        this.id = id;
+        super(id);
         this.nationality = nationality;
     }
 
@@ -391,7 +394,8 @@ class Waiter {
         return salary;
     }
 
-    public void setSalary(int salary) { // adds to current salary
+    public void setSalary(int salary)// adds to current salary
+    {
         this.salary += salary;
     }
 
@@ -399,14 +403,8 @@ class Waiter {
         return nationality;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public void incrementCustomers() {
         customers++;
     }
 
 }
-
-/* TODO:extract id and getId() method */
