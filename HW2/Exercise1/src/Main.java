@@ -7,7 +7,7 @@ public class Main {
         System.out.println("Food log:");
         for (Food f : r.getFoods()) {
             System.out.printf("Food id:%d nationality:%c type:%c localQ:%d " +
-                    "internationalQ:%d number:%d\n", f.getId(),
+                            "internationalQ:%d number:%d\n", f.getId(),
                     f.getNationality()
                     , f.getFoodType(), f.getQuality(),
                     f.getInternationalQuality(), f.getNumber());
@@ -26,15 +26,21 @@ public class Main {
         Restaurant r = new Restaurant("KFC");
         String nations = "cifhpe";
         String ftypes = "nv";
-        System.out.println(ftypes.charAt(1));
         log(r);
-        for (int i = 0; i < 100; i++) {
-            r.CustomerEntry(rand.nextInt(), nations.charAt(rand.nextInt(6)),
-                    ftypes.charAt(rand.nextInt(2)),
-                    nations.charAt(rand.nextInt(6))
-                    , rand.nextInt(70), (rand.nextInt(10)) + 1);
+        for (int i = 0; i < 200; i++) {
+            int id = rand.nextInt(1000);
+            char nationality = nations.charAt(rand.nextInt(6));
+            char foodType = ftypes.charAt(rand.nextInt(2));
+            char menuType = nations.charAt(rand.nextInt(6));
+            int money = rand.nextInt(70);
+            int vote = (rand.nextInt(10)) + 1;
+            System.out.printf("Customer Entry id:%d nation:%c foodType:%c menu:%c money:%d vote:%d\n", id, nationality,
+                    foodType, menuType, money, vote);
+            r.CustomerEntry(id, nationality, foodType, menuType, money, vote);
+        }
+        while (r.getCustomers().length > 0) {
+            r.settlement(r.getCustomers()[rand.nextInt(r.getCustomers().length)]);
             log(r);
         }
-
     }
 }
