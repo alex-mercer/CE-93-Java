@@ -165,38 +165,39 @@ class Food extends IDOwner
 {
     int qualityCount;
     int internationalQualityCount;
-    int qualitySum;
-    int internationalQualitySum;
+    int quality;
+    int internationalQuality;
     char nationality;
     char foodType;
     int number;
 
     public Food(int id, int quality, int internationalQuality, char nationality, char foodType) {
         super(id);
-        this.qualitySum = quality;
+        this.quality = quality;
         this.qualityCount = 1;
-        this.internationalQualitySum = internationalQuality;
+        this.internationalQuality = internationalQuality;
         this.internationalQualityCount = 1;
         this.nationality = nationality;
         this.foodType = foodType;
     }
 
     public int getQuality() {
-        return qualitySum / qualityCount;
+        return quality;
     }
 
     public void setQuality(int quality) {
+        this.quality = (qualityCount * this.quality + quality) / (qualityCount + 1);
         qualityCount++;
-        qualitySum += quality;
     }
 
     public int getInternationalQuality() {
-        return internationalQualitySum / internationalQualityCount;
+        return internationalQuality;
     }
 
     public void setInternationalQuality(int internationalQuality) {
+        this.internationalQuality = (internationalQualityCount * this.internationalQuality + internationalQuality) /
+                (internationalQualityCount + 1);
         internationalQualityCount++;
-        internationalQualitySum += internationalQuality;
     }
 
     public char getNationality() {
@@ -239,7 +240,7 @@ class FoodLocalComparator implements Comparator<Food> {
     public int compare(Food f1, Food f2) {
         if (f1.getQuality() != f2.getQuality())
             return f2.getQuality() - f1.getQuality();
-        return f2.getId() - f1.getId();
+        return f1.getId() - f2.getId();
     }
 }
 
@@ -248,7 +249,7 @@ class FoodInternationalComparator implements Comparator<Food> {
     public int compare(Food f1, Food f2) {
         if (f1.getInternationalQuality() != f2.getInternationalQuality())
             return f2.getInternationalQuality() - f1.getInternationalQuality();
-        return f2.getId() - f1.getId();
+        return f1.getId() - f2.getId();
     }
 }
 
@@ -270,7 +271,7 @@ class Menu {
             if (price > myCustomer.getMoney()) continue;
             menuFoods.add(food);
         }
-        if (myCustomer.getNationality() == myCustomer.getFoodType())
+        if (myCustomer.getNationality() == myCustomer.getMenuType())
             Collections.sort(menuFoods, foodLocalComparator);
         else
             Collections.sort(menuFoods, foodInternationalComparator);
