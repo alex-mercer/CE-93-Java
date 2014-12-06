@@ -99,6 +99,7 @@ class People {
     public void changePosition(Building newPosition) {
         position.removePeople(this);
         newPosition.addPeople(this);
+        this.position = newPosition;
     }
 }
 
