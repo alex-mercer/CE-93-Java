@@ -23,6 +23,19 @@ public class Town {
         buildings.add(building);
     }
 
+    public void addPeople(People people) {
+        if (getBuildings().indexOf(people.getPosition()) == -1)
+            addBuilding(people.getPosition());
+    }
+
+    public void addHero(Hero hero) {
+        addPeople((People) hero);
+    }
+
+    public void addVillain(Villain villain) {
+        addPeople((People) villain);
+    }
+
 
     public List<People> getPeople() {
         List<People> people = new ArrayList<People>();
@@ -156,6 +169,10 @@ class People {
 
     public People(People p) {
         this(p.name, p.job, p.town, p.position);
+    }
+
+    public Building getPosition() {
+        return position;
     }
 
     public void setTown(Town town) {
