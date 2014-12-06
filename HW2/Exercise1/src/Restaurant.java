@@ -15,17 +15,17 @@ public class Restaurant {
     public static final int DISCOUNT_AMOUNT = 1;
     public static final int COOKING_QUANTITY = 10;
     public static final int COOKING_COST_PER_FOOD = 10;
-    static int maxId = 0;//maxId + 1 is always a new Id
-    String name;
-    int capacity;
-    int fund;
-    Food[] foods;
-    List<Customer> customers;
-    List<Waiter> customersWaiters;
-    List<Customer> allCustomers;
-    Waiter[] waiters;
-    int[] waitersTurns;
     public static final int[] FOOD_QUALITIES = new int[]{10, 7, 5, 8};
+    public static int maxId = 0;//maxId + 1 is always a new Id
+    private String name;
+    private int capacity;
+    private int fund;
+    private Food[] foods;
+    private List<Customer> customers;
+    private List<Waiter> customersWaiters;
+    private List<Customer> allCustomers;
+    private Waiter[] waiters;
+    private int[] waitersTurns;
 
     public Restaurant(String name) {
         this(name, 50);
@@ -64,7 +64,7 @@ public class Restaurant {
         }
     }
 
-    void checkFoods() {
+    private void checkFoods() {
         for (int i = 0; i < 5; i++) {
             boolean hasFood = false;
             for (int j = 0; j < 20; j++)
@@ -83,6 +83,7 @@ public class Restaurant {
                 takhfif = true;
         if (!takhfif)
             id = maxId + 1;
+        money -= Waiter.WAITER_TIP;
         Customer customer = new Customer(id, nationality, foodType, menuType, money, vote);
         customer.setTakhfif(takhfif);
         Menu menu = new Menu(getAvailableFoods(), customer);
@@ -93,7 +94,7 @@ public class Restaurant {
             for (int i = 0; i < capacity / 5; i++)
                 settlement(customers.get(0));
         }
-        Food orderedFood = customer.getOrderedFood();
+        Food orderedFood = getCustomerOrderedFood(customer);
         orderedFood.setNumber(orderedFood.getNumber() - 1);
         checkFoods();
         int waiterType = 5;
@@ -103,16 +104,18 @@ public class Restaurant {
         int waiterId = waiterType * 5 + waitersTurns[waiterType];
         waitersTurns[waiterType] = (waitersTurns[waiterType] + 1) % 5;
         waiters[waiterId].setSalary(Waiter.WAITER_TIP);
-        customer.money -= Waiter.WAITER_TIP;
         customers.add(customer);
         customersWaiters.add(waiters[waiterId]);
         allCustomers.add(customer);
     }
 
+    private Food getCustomerOrderedFood(Customer customer) {
+        return customer.getMenu().getMenuFoods()[0];
+    }
+
     public void settlement(Customer customer) {
         int cost = customer.leaving();
         fund += cost;
-        customer.money -= cost;
         int index = customers.indexOf(customer);
         customers.remove(index);
         Waiter customerWaiter = customersWaiters.get(index);
@@ -150,7 +153,7 @@ public class Restaurant {
         this.capacity = capacity;
     }
 
-    Food[] getAvailableFoods() {
+    private Food[] getAvailableFoods() {
         ArrayList<Food> availableFoods = new ArrayList<Food>();
         for (Food food : getFoods()) {
             if (food.getNumber() > 0)
@@ -163,13 +166,13 @@ public class Restaurant {
 class Food extends IDOwner
 
 {
-    int qualityCount;
-    int internationalQualityCount;
-    int quality;
-    int internationalQuality;
-    char nationality;
-    char foodType;
-    int number;
+    private int qualityCount;
+    private int internationalQualityCount;
+    private int quality;
+    private int internationalQuality;
+    private char nationality;
+    private char foodType;
+    private int number;
 
     public Food(int id, int quality, int internationalQuality, char nationality, char foodType) {
         super(id);
@@ -220,11 +223,11 @@ class Food extends IDOwner
         return (this.number == 0);
     }
 
-    public int getLocalPrice() {
+    private int getLocalPrice() {
         return Restaurant.COOKING_COST_PER_FOOD + 5 * getQuality();
     }
 
-    public int getInternatinoalPrice() {
+    private int getInternatinoalPrice() {
         return Restaurant.COOKING_COST_PER_FOOD + 5 * getInternationalQuality();
     }
 
@@ -254,10 +257,10 @@ class FoodInternationalComparator implements Comparator<Food> {
 }
 
 class Menu {
-    static FoodInternationalComparator foodInternationalComparator = new FoodInternationalComparator();
-    static FoodLocalComparator foodLocalComparator = new FoodLocalComparator();
-    ArrayList<Food> menuFoods;
-    Customer myCustomer;
+    private static FoodInternationalComparator foodInternationalComparator = new FoodInternationalComparator();
+    private static FoodLocalComparator foodLocalComparator = new FoodLocalComparator();
+    private ArrayList<Food> menuFoods;
+    private Customer myCustomer;
 
     public Menu(Food[] retaurantFoods, Customer myCustomer) {
         this.myCustomer = myCustomer;
@@ -267,7 +270,7 @@ class Menu {
                 continue;
             if (food.getNationality() != myCustomer.getMenuType())
                 continue;
-            int price = getFoodPrice(food) + Waiter.WAITER_TIP;
+            int price = getFoodPrice(food);
             if (price > myCustomer.getMoney()) continue;
             menuFoods.add(food);
         }
@@ -275,12 +278,10 @@ class Menu {
             Collections.sort(menuFoods, foodLocalComparator);
         else
             Collections.sort(menuFoods, foodInternationalComparator);
-        if (menuFoods.isEmpty())
-            myCustomer.isSad = true;
-        myCustomer.menu = this;
+        myCustomer.setMenu(this);
     }
 
-    int getFoodPrice(Food food) {
+    public int getFoodPrice(Food food) {
         int price = food.getPrice(myCustomer.getNationality());
         if (myCustomer.takhfif()) price -= Restaurant.DISCOUNT_AMOUNT;
         return price;
@@ -297,7 +298,7 @@ class Menu {
 
 class IDOwner {
 
-    int id;
+    private int id;
 
     IDOwner(int id) {
         this.id = id;
@@ -309,16 +310,15 @@ class IDOwner {
 }
 
 class Customer extends IDOwner {
-    char nationality;
-    char foodType;
-    char menuType;
-    int money;
-    int vote;
-    Menu menu;
-    boolean takhfif;
-    boolean isSad;
+    private char nationality;
+    private char foodType;
+    private char menuType;
+    private int money;
+    private int vote;
+    private Menu menu;
+    private boolean takhfif;
 
-    Customer(int id, char nationality, char foodType, char menuType, int money, int vote) {
+    public Customer(int id, char nationality, char foodType, char menuType, int money, int vote) {
         super(id);
         this.nationality = nationality;
         this.foodType = foodType;
@@ -334,11 +334,12 @@ class Customer extends IDOwner {
             getOrderedFood().setQuality(getVote());
         else
             getOrderedFood().setInternationalQuality(getVote());
+        money -= cost;
         return cost;
     }
 
     public boolean sad() {
-        return isSad;
+        return menu.getMenuFoods().length == 0;
     }
 
     public char getMenuType() {
@@ -381,16 +382,16 @@ class Customer extends IDOwner {
         this.vote = vote;
     }
 
-    Food getOrderedFood() {
+    private Food getOrderedFood() {
         return menu.getMenuFoods()[0];
     }
 }
 
 class Waiter extends IDOwner {
     public static final int WAITER_TIP = 3;
-    char nationality;
-    int customers = 0;
-    int salary = 0;
+    private char nationality;
+    private int customers = 0;
+    private int salary = 0;
 
     Waiter(int id, char nationality) {
         super(id);
