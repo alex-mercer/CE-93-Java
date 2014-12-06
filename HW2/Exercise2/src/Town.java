@@ -15,19 +15,30 @@ public class Town {
 
     }
 
-    public void addBuilding(Building building) {
+    public List<Building> getBuildings() {
+        return buildings;
+    }
 
+    public void addBuilding(Building building) {
+        buildings.add(building);
+    }
+
+
+    public List<People> getPeople() {
+        List<People> people = new ArrayList<People>();
+        for (Building building : buildings)
+            people.addAll(building.people);
+        return people;
     }
 
     public String getNames(Class<?> type) {
         String ans = "";
-        for (Building building : buildings)
-            for (People p : building.people)
-                if (p.getClass() == type) {
-                    if (!ans.isEmpty())
-                        ans += ' ';
-                    ans += p.name;
-                }
+        for (People p : getPeople())
+            if (p.getClass() == type) {
+                if (!ans.isEmpty())
+                    ans += ' ';
+                ans += p.name;
+            }
         return ans;
     }
 
@@ -38,9 +49,53 @@ public class Town {
     public String printHeroNames() {
         return getNames(Hero.class);
     }
-    public Town defend(Town town,Hero hero)
-    {
+
+    public Town conquer(Town loserTown, People deadPerson) {
+        for (Building b : loserTown.getBuildings()) {
+            b.removePeople(deadPerson);
+            b.setTown(this);
+        }
         return this;
+    }
+
+    public Town defend(Town town, Hero hero) throws Exception {
+        Superpower attackerSuperpower = hero.getBestSuperpower();
+        Superpower best = null;
+        People defender = null;
+        for (People p : getPeople())
+            if (p instanceof Hero) {
+                Superpower superpower = ((Hero) p).findSuperpower(attackerSuperpower);
+                if (superpower == null) continue;
+                if (best == null || best.getStrength() < superpower.getStrength()) {
+                    best = superpower;
+                    defender = p;
+                }
+            }
+        if (best != null)//Found a hero with the same superpower
+        {
+            if (best.getStrength() > attackerSuperpower.getStrength())
+                return conquer(town, hero);
+            else
+                return town.conquer(this, defender);
+        }
+        //Finding a hero with the maximum strength*level
+        for (People p : getPeople())
+            if (p instanceof Hero) {
+                for (Superpower superpower : ((Hero) p).getSuperpowers()) {
+                    if (best == null || best.getScore() < superpower.getScore()) {
+                        best = superpower;
+                        defender = p;
+                    }
+                }
+            }
+        if (best != null) {
+            if (best.getScore() > attackerSuperpower.getScore())
+                return conquer(town, hero);
+            else
+                return town.conquer(this, defender);
+        }
+        else
+            throw new Exception("Defender town has no hero I don't know what to do!");
     }
 }
 
@@ -59,6 +114,14 @@ class Superpower {
         this(superpower.name, superpower.strength, superpower.level);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
     public String returnName() {
         return name;
     }
@@ -71,6 +134,9 @@ class Superpower {
         this.strength = newStrength;
     }
 
+    public int getScore() {
+        return getLevel() * getStrength();
+    }
 
 }
 
@@ -92,6 +158,10 @@ class People {
         this(p.name, p.job, p.town, p.position);
     }
 
+    public void setTown(Town town) {
+        this.town = town;
+    }
+
     public String getInfo() {
         return name + ' ' + job;
     }
@@ -100,6 +170,7 @@ class People {
         position.removePeople(this);
         newPosition.addPeople(this);
         this.position = newPosition;
+        this.town = newPosition.getTown();
     }
 }
 
@@ -117,6 +188,21 @@ abstract class SuperPeople extends People {
 
     public List<Superpower> getSuperpowers() {
         return superpowers;
+    }
+
+    public Superpower findSuperpower(Superpower superpower) {
+        for (Superpower power : getSuperpowers())
+            if (power.getName().equals(superpower.getName()))
+                return power;
+        return null;
+    }
+
+    public Superpower getBestSuperpower() {
+        Superpower best = null;
+        for (Superpower power : getSuperpowers())
+            if (best == null || power.getLevel() > best.getLevel())
+                best = power;
+        return best;
     }
 
 }
@@ -150,6 +236,20 @@ class Building {
         this.town = town;
         people = new ArrayList<People>();
         town.addBuilding(this);
+    }
+
+    public Town getTown() {
+        return town;
+    }
+
+    public void setTown(Town town) {
+        this.town = town;
+        for (People p : getPeople())
+            p.setTown(this.town);
+    }
+
+    public List<People> getPeople() {
+        return people;
     }
 
     public String getInfo() {
