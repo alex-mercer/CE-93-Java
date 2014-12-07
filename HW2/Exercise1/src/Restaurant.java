@@ -64,6 +64,10 @@ public class Restaurant {
         }
     }
 
+    /**
+     * check whether foods of a nationality is emptied out or not
+     * if it is the cooking function for that nationaliy is invoked
+     */
     private void checkFoods() {
         for (int i = 0; i < 5; i++) {
             boolean hasFood = false;
@@ -223,10 +227,20 @@ class Food extends IDOwner
         return (this.number == 0);
     }
 
+    /**
+     * Computes the local price based on the formula and the local quality
+     *
+     * @return the computed price
+     */
     private int getLocalPrice() {
         return Restaurant.COOKING_COST_PER_FOOD + 5 * getQuality();
     }
 
+    /**
+     * Computes the local price based on the formula and the international quality
+     *
+     * @return the computed price
+     */
     private int getInternatinoalPrice() {
         return Restaurant.COOKING_COST_PER_FOOD + 5 * getInternationalQuality();
     }
@@ -382,6 +396,9 @@ class Customer extends IDOwner {
         this.vote = vote;
     }
 
+    /**
+     * @return the first food on the menu which is the ordered food
+     */
     private Food getOrderedFood() {
         return menu.getMenuFoods()[0];
     }
