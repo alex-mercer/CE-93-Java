@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by amin on 11/15/14.
@@ -12,7 +9,7 @@ public class Town {
 
     public Town(String name) {
         this.name = name;
-
+        buildings = new ArrayList<Building>();
     }
 
     public List<Building> getBuildings() {
@@ -21,19 +18,6 @@ public class Town {
 
     public void addBuilding(Building building) {
         buildings.add(building);
-    }
-
-    public void addPeople(People people) {
-        if (getBuildings().indexOf(people.getPosition()) == -1)
-            addBuilding(people.getPosition());
-    }
-
-    public void addHero(Hero hero) {
-        addPeople((People) hero);
-    }
-
-    public void addVillain(Villain villain) {
-        addPeople((People) villain);
     }
 
 
@@ -46,12 +30,16 @@ public class Town {
 
     public String getNames(Class<?> type) {
         String ans = "";
+        List<String> peopleNames = new ArrayList<String>();
         for (People p : getPeople())
-            if (p.getClass() == type) {
-                if (!ans.isEmpty())
-                    ans += ' ';
-                ans += p.name;
-            }
+            if (p.getClass() == type)
+                peopleNames.add(p.getName());
+        Collections.sort(peopleNames);
+        for (String s : peopleNames) {
+            if (!ans.isEmpty())
+                ans += ' ';
+            ans += s;
+        }
         return ans;
     }
 
@@ -71,7 +59,7 @@ public class Town {
         return this;
     }
 
-    public Town defend(Town town, Hero hero) throws Exception {
+    public Town defend(Town town, Hero hero) {
         Superpower attackerSuperpower = hero.getBestSuperpower();
         Superpower best = null;
         People defender = null;
@@ -107,8 +95,7 @@ public class Town {
             else
                 return town.conquer(this, defender);
         }
-        else
-            throw new Exception("Defender town has no hero I don't know what to do!");
+        return this;
     }
 }
 
@@ -169,6 +156,10 @@ class People {
 
     public People(People p) {
         this(p.name, p.job, p.town, p.position);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Building getPosition() {
@@ -275,10 +266,15 @@ class Building {
 
     public String getPopulation() {
         String ans = "";
-        for (People p : people) {
-            if (ans.length() > 0)
+        List<String> peopleNames = new ArrayList<String>();
+        for (People p : getPeople())
+            peopleNames.add(p.getName());
+        Collections.sort(peopleNames);
+        Collections.reverse(peopleNames);
+        for (String s : peopleNames) {
+            if (!ans.isEmpty())
                 ans += '\n';
-            ans += p.name;
+            ans += s;
         }
         return ans;
     }
