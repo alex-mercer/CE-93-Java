@@ -28,6 +28,10 @@ public class Town {
         return people;
     }
 
+    /**
+     * @param type the type of people to return; type can be People,Hero or Villain
+     * @return a space separated list of people with the type specified sorted lexicographically
+     */
     public String getNames(Class<?> type) {
         String ans = "";
         List<String> peopleNames = new ArrayList<String>();
@@ -51,6 +55,13 @@ public class Town {
         return getNames(Hero.class);
     }
 
+    /**
+     * Changes town property of all fields of loserTown
+     *
+     * @param loserTown  the town to move it's building to this town
+     * @param deadPerson the person to ignore
+     * @return this town
+     */
     public Town conquer(Town loserTown, People deadPerson) {
         for (Building b : loserTown.getBuildings()) {
             b.removePeople(deadPerson);
@@ -59,10 +70,18 @@ public class Town {
         return this;
     }
 
+    /**
+     * Simulates an attack from Town town with Hero hero to this town
+     *
+     * @param town the attacker town
+     * @param hero the hero from attacker town
+     * @return
+     */
     public Town defend(Town town, Hero hero) {
         Superpower attackerSuperpower = hero.getBestSuperpower();
         Superpower best = null;
         People defender = null;
+        //Finding a hero with the same superpower
         for (People p : getPeople())
             if (p instanceof Hero) {
                 Superpower superpower = ((Hero) p).findSuperpower(attackerSuperpower);
@@ -95,7 +114,7 @@ public class Town {
             else
                 return town.conquer(this, defender);
         }
-        return this;
+        return this;//Undefined behavior
     }
 }
 
@@ -154,6 +173,11 @@ class People {
         position.addPeople(this);
     }
 
+    /**
+     * Copy constructor
+     *
+     * @param p the person to copy
+     */
     public People(People p) {
         this(p.name, p.job, p.town, p.position);
     }
@@ -198,6 +222,12 @@ abstract class SuperPeople extends People {
         return superpowers;
     }
 
+    /**
+     * Finds the superpower with the same name
+     *
+     * @param superpower
+     * @return the superpower with the same name or null if not found
+     */
     public Superpower findSuperpower(Superpower superpower) {
         for (Superpower power : getSuperpowers())
             if (power.getName().equals(superpower.getName()))
@@ -205,6 +235,9 @@ abstract class SuperPeople extends People {
         return null;
     }
 
+    /**
+     * @return the superpower with highest level
+     */
     public Superpower getBestSuperpower() {
         Superpower best = null;
         for (Superpower power : getSuperpowers())
@@ -250,6 +283,11 @@ class Building {
         return town;
     }
 
+    /**
+     * Changes the town of building and all people inside it
+     *
+     * @param town the new town
+     */
     public void setTown(Town town) {
         this.town = town;
         for (People p : getPeople())
@@ -264,6 +302,9 @@ class Building {
         return name + ' ' + height + ' ' + town.name;
     }
 
+    /**
+     * @return list of people in the building sorted decreasing each in a new line
+     */
     public String getPopulation() {
         String ans = "";
         List<String> peopleNames = new ArrayList<String>();
