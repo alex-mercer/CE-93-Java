@@ -65,7 +65,7 @@ public class Town {
     public Town conquer(Town loserTown, People deadPerson) {
         for (Building b : loserTown.getBuildings()) {
             b.removePeople(deadPerson);
-            b.setTown(this);
+            b.surrender(this);
         }
         return this;
     }
@@ -190,7 +190,7 @@ class People {
         return position;
     }
 
-    public void setTown(Town town) {
+    public void surrender(Town town) {
         this.town = town;
     }
 
@@ -252,6 +252,13 @@ class Villain extends SuperPeople {
     Villain(String name, String job, Town town, Building position, List<Superpower> superpowers) {
         super(name, job, town, position, superpowers);
     }
+
+    @Override
+    public void surrender(Town town) {
+        super.surrender(town);
+        this.position.removePeople(this);
+        new Hero(this.name, this.job, this.town, this.position, this.superpowers);
+    }
 }
 
 class Hero extends SuperPeople {
@@ -288,10 +295,10 @@ class Building {
      *
      * @param town the new town
      */
-    public void setTown(Town town) {
+    public void surrender(Town town) {
         this.town = town;
         for (People p : getPeople())
-            p.setTown(this.town);
+            p.surrender(this.town);
     }
 
     public List<People> getPeople() {
@@ -356,7 +363,11 @@ class NaturalDisaster {
                             it.remove();
                     }
                     if (sp.superpowers.isEmpty())//Converting to normal person
-                        people.set(i, new People(p));
+                    {
+                        people.remove(i);
+                        new People(p);
+                    }
+
                 }
                 else {
                     people.remove(i);
@@ -380,7 +391,8 @@ class NaturalDisaster {
                 else {
                     LinkedList<Superpower> powers = new LinkedList<Superpower>();
                     powers.add(new Superpower(superpower));//cloning superpower
-                    people.set(i, new Hero(p.name, p.job, p.town, p.position, powers));
+                    people.remove(i);
+                    new Hero(p.name, p.job, p.town, p.position, powers);
                 }
             }
         }
