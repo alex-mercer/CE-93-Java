@@ -124,8 +124,10 @@ public class Restaurant {
         customers.remove(index);
         Waiter customerWaiter = customersWaiters.get(index);
         customerWaiter.incrementCustomers();
-        if (customerWaiter.getCustomers() % 10 == 0)
+        if (customerWaiter.getCustomers() % 10 == 0) {
             customerWaiter.setSalary(10);
+            fund -= 10;
+        }
         customersWaiters.remove(index);
     }
 
