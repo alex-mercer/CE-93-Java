@@ -8,7 +8,7 @@ import java.util.Set;
  * Created by amin on 12/23/14.
  */
 public class GameEngine {
-    public static final int BOARD_SIZE = 9;
+    public static final int BOARD_SIZE = 5;
     int board[][] = new int[BOARD_SIZE][BOARD_SIZE];
     public static final int CANDY_TYPES = 6;
     String username;
@@ -27,14 +27,41 @@ public class GameEngine {
 
     public GameEngine() {
         cursor = new Point(0, 0);
-        for (int i = 0; i < BOARD_SIZE; i++) for (int j = 0; j < BOARD_SIZE; j++) board[i][j] = -1;
-        for (int i = 0; i < BOARD_SIZE; i++)
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                do {
-                    board[i][j] = rand.nextInt(CANDY_TYPES);
-                } while (getRemovedCandies().length > 0);
-            }
+        do {
+            resetBoard();
+            for (int i = 0; i < BOARD_SIZE; i++)
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    do {
+                        board[i][j] = rand.nextInt(CANDY_TYPES);
+                    } while (getRemovedCandies().length > 0);
+                }
+        } while (isLost());
 
+    }
+
+    private boolean isLost() {
+        boolean answer=true;
+        for (int i = 0; i < BOARD_SIZE; i++)
+            for (int j = 0; j < BOARD_SIZE - 1; j++) {
+                Point p1 = new Point(i, j), p2 = new Point(i, j + 1);
+                swapCandies(p1, p2);
+                if (getRemovedCandies().length > 0)
+                    answer=false;
+                swapCandies(p1, p2);
+            }
+        for (int i = 0; i < BOARD_SIZE - 1; i++)
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                Point p1 = new Point(i, j), p2 = new Point(i + 1, j);
+                swapCandies(p1, p2);
+                if (getRemovedCandies().length > 0)
+                    answer=false;
+                swapCandies(p1, p2);
+            }
+        return answer;
+    }
+
+    private void resetBoard() {
+        for (int i = 0; i < BOARD_SIZE; i++) for (int j = 0; j < BOARD_SIZE; j++) board[i][j] = -1;
     }
 
     public void processKey() {
@@ -109,18 +136,26 @@ public class GameEngine {
 
     public void moveCursor(Point point) {
         if (isSelected()) {
-            Point newPoint = new Point(cursor);
+            Point newPoint = new Point(this.cursor);
             newPoint.translate(point.x, point.y);
             normalizePoint(newPoint);
-            if (!newPoint.equals(cursor)) {
-                gameBoard.swapCandies(cursor, newPoint);
+            if (!newPoint.equals(this.cursor)) {
+                gameBoard.swapCandies(this.cursor, newPoint);
                 swapCandies(newPoint);
-                if (getRemovedCandies().length == 0) {
-                    gameBoard.swapCandies(cursor, newPoint);
+                Point[] removedCandies = getRemovedCandies();
+                if (removedCandies.length == 0) {
+                    gameBoard.swapCandies(this.cursor, newPoint);
                     swapCandies(newPoint);
                 }
                 else {
-                    gameBoard.eatCandies(getRemovedCandies());
+                    while (removedCandies.length > 0) {
+                        gameBoard.eatCandies(removedCandies);
+                        refillBoard();
+                        gameBoard.refillBoard();
+                        removedCandies = getRemovedCandies();
+                    }
+                    if(isLost())
+                        System.out.println("Lost!");
                 }
                 selected = false;
             }
@@ -132,10 +167,37 @@ public class GameEngine {
         gameBoard.repaint();
     }
 
-    private void swapCandies(Point newPoint) {
-        int tmp = board[cursor.x][cursor.y];
-        board[cursor.x][cursor.y] = board[newPoint.x][newPoint.y];
-        board[newPoint.x][newPoint.y] = tmp;
+    private void refillBoard() {
+        for (Point p : getRemovedCandies())
+            board[p.x][p.y] = -1;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            Point lastPos = null;
+            for (int j = BOARD_SIZE - 1; j >= 0; j--) {
+                if (board[i][j] == -1) {
+                    if (lastPos == null) lastPos = new Point(i, j);
+                }
+                else if (lastPos != null) {
+                    board[lastPos.x][lastPos.y] = board[i][j];
+                    board[i][j] = -1;
+                    lastPos.y--;
+                }
+            }
+            for (int j = BOARD_SIZE - 1; j >= 0; j--) {
+                if (board[i][j] == -1) {
+                    board[i][j] = rand.nextInt(CANDY_TYPES);
+                }
+            }
+        }
+    }
+
+    private void swapCandies(Point oldPoint, Point newPoint) {
+        int tmp = board[newPoint.x][newPoint.y];
+        board[newPoint.x][newPoint.y] = board[oldPoint.x][oldPoint.y];
+        board[oldPoint.x][oldPoint.y] = tmp;
+    }
+
+    private void swapCandies(Point oldPoint) {
+        swapCandies(oldPoint, cursor);
     }
 
 

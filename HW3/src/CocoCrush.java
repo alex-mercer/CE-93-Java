@@ -56,7 +56,6 @@ public class CocoCrush {
             public void run() {
                 while (true) {
                     board.repaint();
-//                    System.out.println("asdfasdfasdfasdfadsfasdf");
                     try {
                         Thread.sleep(1000 / 30);
                     } catch (InterruptedException e) {

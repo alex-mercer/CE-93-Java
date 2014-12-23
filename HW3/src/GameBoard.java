@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -30,7 +31,7 @@ class CandyTile extends JComponent {
         this.y = y;
         this.type = type;
         opacity = 0;
-        setBounds(x * CANDY_SIZE, y * CANDY_SIZE, CANDY_SIZE + 2, CANDY_SIZE + 2);
+        setBounds(x * CANDY_SIZE, y * CANDY_SIZE, CANDY_SIZE, CANDY_SIZE);
 
     }
 
@@ -40,17 +41,20 @@ class CandyTile extends JComponent {
         Graphics2D g2d = (Graphics2D) g;
         Color c = g2d.getColor();
         g2d.drawImage(candyImages[type], 0, 0, null);
-        g2d.setColor(new Color(128, 128, 128, opacity));
+        g2d.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), opacity));
         g2d.fillRect(0, 0, CANDY_SIZE, CANDY_SIZE);
     }
 
-    public Thread moveToPos(final Point newPos) {
+    public Thread moveToPos(Point pos) {
+        final Point newPos = new Point(pos.x * CANDY_SIZE, pos.y * CANDY_SIZE);
         int dx = newPos.x - getX();
         int dy = newPos.y - getY();
         if (dx != 0)
             dx /= Math.abs(dx);
         if (dy != 0)
             dy /= Math.abs(dy);
+        dx*=2;
+        dy*=2;
         final int finalDy = dy;
         final int finalDx = dx;
         Thread thread = new Thread(new Runnable() {
@@ -60,7 +64,7 @@ class CandyTile extends JComponent {
                 do {
                     setLocation(getX() + finalDx, getY() + finalDy);
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(8);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -80,7 +84,7 @@ class CandyTile extends JComponent {
                     opacity += 5;
                     repaint();
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(5);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -153,9 +157,8 @@ public class GameBoard extends JComponent {
         CandyTile second = candyTiles[secondPos.x][secondPos.y];
         candyTiles[secondPos.x][secondPos.y] = first;
         candyTiles[firstPos.x][firstPos.y] = second;
-        Point firstLocation = new Point(first.getLocation());
-        Thread t1 = first.moveToPos(second.getLocation());
-        Thread t2 = second.moveToPos(firstLocation);
+        Thread t1 = first.moveToPos(secondPos);
+        Thread t2 = second.moveToPos(firstPos);
         try {
             t1.join();
             t2.join();
@@ -165,14 +168,57 @@ public class GameBoard extends JComponent {
     }
 
     public void eatCandies(Point[] candies) {
-        Thread threads[] = new Thread[candies.length];
+        ArrayList<Thread> threads = new ArrayList<Thread>();
         for (int i = 0; i < candies.length; i++)
-            threads[i] = candyTiles[candies[i].x][candies[i].y].eat();
-        for (int i = 0; i < candies.length; i++)
+            threads.add(candyTiles[candies[i].x][candies[i].y].eat());
+        for (Thread thread : threads) {
             try {
-                threads[i].join();
+                thread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        }
+        for (int i = 0; i < candies.length; i++) {
+            remove(candyTiles[candies[i].x][candies[i].y]);
+            candyTiles[candies[i].x][candies[i].y] = null;
+        }
+    }
+
+    public void refillBoard() {
+        ArrayList<Thread> threads = new ArrayList<Thread>();
+        for (int i = 0; i < GameEngine.BOARD_SIZE; i++) {
+            Point lastPos = null;
+            for (int j = GameEngine.BOARD_SIZE - 1; j >= 0; j--) {
+                if (candyTiles[i][j] == null) {
+                    if (lastPos == null) lastPos = new Point(i, j);
+                }
+                else if (lastPos != null) {
+                    candyTiles[i][j].moveToPos(lastPos);
+                    candyTiles[lastPos.x][lastPos.y] = candyTiles[i][j];
+                    candyTiles[i][j] = null;
+                    lastPos.y--;
+                }
+            }
+            int emptyCount = 0;
+            for (int j = GameEngine.BOARD_SIZE - 1; j >= 0; j--) {
+                if (candyTiles[i][j] == null) {
+                    emptyCount++;
+                }
+            }
+            for (int j = GameEngine.BOARD_SIZE - 1; j >= 0; j--) {
+                if (candyTiles[i][j] == null) {
+                    candyTiles[i][j] = new CandyTile(i, j - emptyCount, engine.board[i][j]);
+                    add(candyTiles[i][j]);
+                    threads.add(candyTiles[i][j].moveToPos(new Point(i, j)));
+                }
+            }
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
