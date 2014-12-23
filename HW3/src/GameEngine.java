@@ -62,7 +62,7 @@ public class GameEngine {
         }
         if (point != null)
             moveCursor(point);
-        keyEvent=null;
+        keyEvent = null;
         locked = false;
     }
 
@@ -113,14 +113,16 @@ public class GameEngine {
             newPoint.translate(point.x, point.y);
             normalizePoint(newPoint);
             if (!newPoint.equals(cursor)) {
-                gameBoard.moveCandies(cursor, newPoint);
+                gameBoard.swapCandies(cursor, newPoint);
                 swapCandies(newPoint);
                 if (getRemovedCandies().length == 0) {
-                    gameBoard.moveCandies(cursor, newPoint);
+                    gameBoard.swapCandies(cursor, newPoint);
                     swapCandies(newPoint);
-                    selected = false;
-                    System.out.println("I'm here");
                 }
+                else {
+                    gameBoard.eatCandies(getRemovedCandies());
+                }
+                selected = false;
             }
         }
         else {

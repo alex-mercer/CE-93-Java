@@ -23,11 +23,13 @@ class CandyTile extends JComponent {
     int x, y;
     //    int width, height
     int type;
+    int opacity;
 
     CandyTile(int x, int y, int type) {
         this.x = x;
         this.y = y;
         this.type = type;
+        opacity = 0;
         setBounds(x * CANDY_SIZE, y * CANDY_SIZE, CANDY_SIZE + 2, CANDY_SIZE + 2);
 
     }
@@ -36,7 +38,10 @@ class CandyTile extends JComponent {
     protected void paintComponent(Graphics g) {
         super.paintComponents(g);
         Graphics2D g2d = (Graphics2D) g;
+        Color c = g2d.getColor();
         g2d.drawImage(candyImages[type], 0, 0, null);
+        g2d.setColor(new Color(128, 128, 128, opacity));
+        g2d.fillRect(0, 0, CANDY_SIZE, CANDY_SIZE);
     }
 
     public Thread moveToPos(final Point newPos) {
@@ -54,13 +59,32 @@ class CandyTile extends JComponent {
 
                 do {
                     setLocation(getX() + finalDx, getY() + finalDy);
-                    repaint();
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 } while (!(getX() == newPos.x && getY() == newPos.y));
+            }
+        });
+        thread.start();
+        return thread;
+    }
+
+    public Thread eat() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                do {
+                    opacity += 5;
+                    repaint();
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } while (opacity != 255);
             }
         });
         thread.start();
@@ -124,7 +148,7 @@ public class GameBoard extends JComponent {
         }
     }
 
-    public void moveCandies(Point firstPos, Point secondPos) {
+    public void swapCandies(Point firstPos, Point secondPos) {
         CandyTile first = candyTiles[firstPos.x][firstPos.y];
         CandyTile second = candyTiles[secondPos.x][secondPos.y];
         candyTiles[secondPos.x][secondPos.y] = first;
@@ -138,5 +162,17 @@ public class GameBoard extends JComponent {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public void eatCandies(Point[] candies) {
+        Thread threads[] = new Thread[candies.length];
+        for (int i = 0; i < candies.length; i++)
+            threads[i] = candyTiles[candies[i].x][candies[i].y].eat();
+        for (int i = 0; i < candies.length; i++)
+            try {
+                threads[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
     }
 }
