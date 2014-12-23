@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class GamePanel extends JPanel {
     public static final int CANDY_SIZE = 60;
-    public static final int PANEL_SIZE = GameEngine.TABLE_SIZE * CANDY_SIZE;
+    public static final int PANEL_SIZE = GameEngine.BOARD_SIZE * CANDY_SIZE;
     BufferedImage candyImages[] = new BufferedImage[GameEngine.CANDY_TYPES];
     GameEngine engine;
 
@@ -34,14 +34,20 @@ public class GamePanel extends JPanel {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.fillRect(0, 0, PANEL_SIZE, PANEL_SIZE);
-        g2d.setColor(new Color(200, 0, 0, 100));
-
         //Drawing candies!
-        g2d.drawImage(candyImages[0], 10, 10, null);
-        g2d.fillRect(0, 0, PANEL_SIZE / 2, PANEL_SIZE / 2);
+        int[][] board = engine.getBoard();
+        int boardSize = engine.BOARD_SIZE;
+        for (int i = 0; i < boardSize; i++)
+            for (int j = 0; j < boardSize; j++)
+                g2d.drawImage(candyImages[board[i][j]], i * CANDY_SIZE, j * CANDY_SIZE, null);
         g2d.setStroke(new BasicStroke(3));
         g2d.setColor(new Color(255, 0, 0));
-        Point p = engine.cursor;
-        g2d.drawRect((int) p.getX() * CANDY_SIZE, (int) p.getY() * CANDY_SIZE, CANDY_SIZE, CANDY_SIZE);
+        Point cursor = engine.cursor;
+        g2d.drawRect((int) cursor.getX() * CANDY_SIZE, (int) cursor.getY() * CANDY_SIZE, CANDY_SIZE, CANDY_SIZE);
+        if(engine.isSelected())
+        {
+            g2d.setColor(new Color(255, 0, 0,50));
+            g2d.fillRect((int) cursor.getX() * CANDY_SIZE, (int) cursor.getY() * CANDY_SIZE, CANDY_SIZE, CANDY_SIZE);
+        }
     }
 }
