@@ -22,6 +22,14 @@ public class CocoCrush {
 //    }
     JPanel jPanel;
 
+//    public static void main(String[] args) {
+//        JFrame frame = new JFrame("CocoCrush");
+//        frame.setContentPane(new CocoCrush().jPanel);
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        frame.pack();
+//        frame.setVisible(true);
+//}
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -35,13 +43,32 @@ public class CocoCrush {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         GameEngine engine = new GameEngine();
-
-
+        CocoCrush cocoCrush = new CocoCrush();
         GameController controller = new GameController();
-        GamePanel panel = new GamePanel(controller, engine);
-        frame.getContentPane().add(panel);
+        final GameBoard board = new GameBoard(controller, engine);
+        engine.setGameBoard(board);
+        cocoCrush.jPanel.addKeyListener(controller);
+        cocoCrush.jPanel.add(board);
+        frame.setContentPane(cocoCrush.jPanel);
+        Thread gameloop = new Thread(new Runnable() {
 
-        controller.init(panel, engine);
+            @Override
+            public void run() {
+                while (true) {
+                    board.repaint();
+//                    System.out.println("asdfasdfasdfasdfadsfasdf");
+                    try {
+                        Thread.sleep(1000 / 30);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        gameloop.start();
+
+        controller.init(board, engine);
         controller.start();
 
         frame.pack();
@@ -66,6 +93,8 @@ public class CocoCrush {
     private void $$$setupUI$$$() {
         jPanel = new JPanel();
         jPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        jPanel.setFocusable(true);
+        jPanel.setRequestFocusEnabled(true);
     }
 
     /**

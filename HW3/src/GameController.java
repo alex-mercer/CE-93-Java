@@ -1,4 +1,3 @@
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -6,7 +5,7 @@ public class GameController implements KeyListener {
 
     private static final int FPS = 30;
 
-    GamePanel panel;
+    GameBoard panel;
 
     GameEngine engine;
 
@@ -18,7 +17,7 @@ public class GameController implements KeyListener {
 
     private boolean downKey;
 
-    public void init(GamePanel panel, GameEngine engine) {
+    public void init(GameBoard panel, GameEngine engine) {
         this.panel = panel;
         this.engine = engine;
     }
@@ -30,10 +29,7 @@ public class GameController implements KeyListener {
             public void run() {
                 running = true;
                 while (running) {
-                    if (paused == false) {
-                        gameUpdate();
-                        gameRender();
-                    }
+                    engine.processKey();
 
                     try {
                         Thread.sleep(1000 / FPS);
@@ -68,34 +64,16 @@ public class GameController implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        Point point = new Point(0, 0);
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT:
-                point.move(-1, 0);
-                break;
-            case KeyEvent.VK_RIGHT:
-                point.move(1, 0);
-                break;
-            case KeyEvent.VK_UP:
-                point.move(0, -1);
-                break;
-            case KeyEvent.VK_DOWN:
-                point.move(0, 1);
-                break;
-            case KeyEvent.VK_SPACE:
-                engine.selectCursor();
-        }
-        engine.moveCursor(point);
+        if (engine.locked)
+            return;
+        engine.keyEvent = e;
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_DOWN:
-                downKey = false;
-                break;
-        }
+    public void keyReleased(KeyEvent keyEvent) {
+
     }
+
 
     @Override
     public void keyTyped(KeyEvent e) {

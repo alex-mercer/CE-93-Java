@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -8,22 +9,20 @@ import java.util.Set;
  */
 public class GameEngine {
     public static final int BOARD_SIZE = 9;
+    int board[][] = new int[BOARD_SIZE][BOARD_SIZE];
     public static final int CANDY_TYPES = 6;
     String username;
     int score;
     Point cursor;
+    KeyEvent keyEvent = null;
+    public boolean locked;
 
-    public boolean isSelected() {
-        return selected;
+    public void setGameBoard(GameBoard gameBoard) {
+        this.gameBoard = gameBoard;
     }
 
-    boolean selected;
-
-    public int[][] getBoard() {
-        return board;
-    }
-
-    int board[][] = new int[BOARD_SIZE][BOARD_SIZE];
+    GameBoard gameBoard;
+    boolean selected = false;
     Random rand = new Random();
 
     public GameEngine() {
@@ -38,10 +37,47 @@ public class GameEngine {
 
     }
 
+    public void processKey() {
+        if (keyEvent == null)
+            return;
+        locked = true;
+        Point point = new Point(0, 0);
+        switch (keyEvent.getKeyCode()) {
+            case KeyEvent.VK_LEFT:
+                point.move(-1, 0);
+                break;
+            case KeyEvent.VK_RIGHT:
+                point.move(1, 0);
+                break;
+            case KeyEvent.VK_UP:
+                point.move(0, -1);
+                break;
+            case KeyEvent.VK_DOWN:
+                point.move(0, 1);
+                break;
+            case KeyEvent.VK_SPACE:
+                selectCursor();
+                point = null;
+                break;
+        }
+        if (point != null)
+            moveCursor(point);
+        keyEvent=null;
+        locked = false;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public int[][] getBoard() {
+        return board;
+    }
+
     private Point[] getRemovedCandies() {
         Set<Point> points = new HashSet<Point>();
-        for (int i = 0; i < BOARD_SIZE - 3; i++)
-            for (int j = 0; j < BOARD_SIZE - 3; j++) {
+        for (int i = 0; i < BOARD_SIZE; i++)
+            for (int j = 0; j < BOARD_SIZE - 2; j++) {
                 if (board[i][j] == -1)
                     continue;
                 if (board[i][j] == board[i][j + 1] && board[i][j + 1] == board[i][j + 2]) {
@@ -49,6 +85,11 @@ public class GameEngine {
                     points.add(new Point(i, j + 1));
                     points.add(new Point(i, j + 2));
                 }
+            }
+        for (int i = 0; i < BOARD_SIZE - 2; i++)
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (board[i][j] == -1)
+                    continue;
                 if (board[i][j] == board[i + 1][j] && board[i + 1][j] == board[i + 2][j]) {
                     points.add(new Point(i, j));
                     points.add(new Point(i + 1, j));
@@ -62,13 +103,37 @@ public class GameEngine {
         return Math.max(0, Math.min(BOARD_SIZE - 1, a));
     }
 
-    private void normalizeCursor() {
-        cursor.setLocation(normalize((int) cursor.getX()), normalize((int) cursor.getY()));
+    private void normalizePoint(Point point) {
+        point.setLocation(normalize((int) point.getX()), normalize((int) point.getY()));
     }
 
     public void moveCursor(Point point) {
-        cursor.translate((int) point.getX(), (int) point.getY());
-        normalizeCursor();
+        if (isSelected()) {
+            Point newPoint = new Point(cursor);
+            newPoint.translate(point.x, point.y);
+            normalizePoint(newPoint);
+            if (!newPoint.equals(cursor)) {
+                gameBoard.moveCandies(cursor, newPoint);
+                swapCandies(newPoint);
+                if (getRemovedCandies().length == 0) {
+                    gameBoard.moveCandies(cursor, newPoint);
+                    swapCandies(newPoint);
+                    selected = false;
+                    System.out.println("I'm here");
+                }
+            }
+        }
+        else {
+            cursor.translate(point.x, point.y);
+            normalizePoint(cursor);
+        }
+        gameBoard.repaint();
+    }
+
+    private void swapCandies(Point newPoint) {
+        int tmp = board[cursor.x][cursor.y];
+        board[cursor.x][cursor.y] = board[newPoint.x][newPoint.y];
+        board[newPoint.x][newPoint.y] = tmp;
     }
 
 
