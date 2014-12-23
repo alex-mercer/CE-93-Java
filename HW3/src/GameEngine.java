@@ -1,5 +1,7 @@
 import java.awt.*;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by amin on 12/23/14.
@@ -26,10 +28,34 @@ public class GameEngine {
 
     public GameEngine() {
         cursor = new Point(0, 0);
+        for (int i = 0; i < BOARD_SIZE; i++) for (int j = 0; j < BOARD_SIZE; j++) board[i][j] = -1;
         for (int i = 0; i < BOARD_SIZE; i++)
-            for (int j = 0; j < BOARD_SIZE; j++)
-                board[i][j] = rand.nextInt(CANDY_TYPES);
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                do {
+                    board[i][j] = rand.nextInt(CANDY_TYPES);
+                } while (getRemovedCandies().length > 0);
+            }
 
+    }
+
+    private Point[] getRemovedCandies() {
+        Set<Point> points = new HashSet<Point>();
+        for (int i = 0; i < BOARD_SIZE - 3; i++)
+            for (int j = 0; j < BOARD_SIZE - 3; j++) {
+                if (board[i][j] == -1)
+                    continue;
+                if (board[i][j] == board[i][j + 1] && board[i][j + 1] == board[i][j + 2]) {
+                    points.add(new Point(i, j));
+                    points.add(new Point(i, j + 1));
+                    points.add(new Point(i, j + 2));
+                }
+                if (board[i][j] == board[i + 1][j] && board[i + 1][j] == board[i + 2][j]) {
+                    points.add(new Point(i, j));
+                    points.add(new Point(i + 1, j));
+                    points.add(new Point(i + 2, j));
+                }
+            }
+        return points.toArray(new Point[points.size()]);
     }
 
     private int normalize(int a) {
