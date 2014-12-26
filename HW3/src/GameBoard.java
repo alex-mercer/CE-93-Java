@@ -102,7 +102,10 @@ class CandyTile extends JComponent {
 }
 
 public class GameBoard extends JComponent {
-    public static final int PANEL_SIZE = GameEngine.BOARD_SIZE * CandyTile.CANDY_SIZE;
+    public static final int GAME_PANEL_SIZE = GameEngine.BOARD_SIZE * CandyTile.CANDY_SIZE;
+    private static final int RIGHT_PANE_SIZE = 150;
+    public static final int PANEL_SIZE_WIDTH = GAME_PANEL_SIZE + RIGHT_PANE_SIZE;
+    public static final int PANEL_SIZE_HEIGHT = GAME_PANEL_SIZE;
     GameEngine engine;
     CandyTile candyTiles[][];
     public static boolean paused = false;
@@ -111,8 +114,8 @@ public class GameBoard extends JComponent {
     GameBoard(final GameController controller, GameEngine engine) {
 //        setFocusable(true);
 //        requestFocus();
-        setPreferredSize(new Dimension(PANEL_SIZE, PANEL_SIZE));
-        setBounds(0, 0, PANEL_SIZE, PANEL_SIZE);
+        setPreferredSize(new Dimension(PANEL_SIZE_WIDTH, PANEL_SIZE_HEIGHT));
+        setBounds(0, 0, PANEL_SIZE_WIDTH, PANEL_SIZE_HEIGHT);
         this.engine = engine;
         candyTiles = new CandyTile[GameEngine.BOARD_SIZE][GameEngine.BOARD_SIZE];
         for (int i = 0; i < GameEngine.BOARD_SIZE; i++)
@@ -133,7 +136,7 @@ public class GameBoard extends JComponent {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.fillRect(0, 0, PANEL_SIZE, PANEL_SIZE);
+        g2d.fillRect(0, 0, PANEL_SIZE_WIDTH, PANEL_SIZE_HEIGHT);
         paintChildren(g);
         paintComponent(g);
     }
@@ -146,7 +149,7 @@ public class GameBoard extends JComponent {
                 RenderingHints.VALUE_ANTIALIAS_ON);
         //Drawing candies
         int[][] board = engine.getBoard();
-        int boardSize = engine.BOARD_SIZE;
+        int boardSize = GameEngine.BOARD_SIZE;
         g2d.setStroke(new BasicStroke(3));
         g2d.setColor(new Color(255, 0, 0));
         Point cursor = engine.cursor;
@@ -155,18 +158,36 @@ public class GameBoard extends JComponent {
             g2d.setColor(new Color(255, 0, 0, 50));
             g2d.fillRect(cursor.x * CandyTile.CANDY_SIZE, cursor.y * CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE);
         }
-        if (GameBoard.paused) {
+        if(engine.isGameOver())
+        {
             g2d.setColor(new Color(128, 128, 128, 100));
-            g2d.fillRect(0, 0, PANEL_SIZE, PANEL_SIZE);
+            g2d.fillRect(0, 0, GAME_PANEL_SIZE, GAME_PANEL_SIZE);
+            g2d.setColor(new Color(255, 255, 255, 220));
+            g2d.setFont(new Font("TimesRoman", Font.PLAIN, 30));
+            String paused_string = "Game Over!";
+            drawString(g2d, paused_string, GAME_PANEL_SIZE / 2, GAME_PANEL_SIZE / 2);
+        }
+        else if (GameBoard.paused) {
+            g2d.setColor(new Color(128, 128, 128, 100));
+            g2d.fillRect(0, 0, GAME_PANEL_SIZE, GAME_PANEL_SIZE);
             g2d.setColor(new Color(255, 255, 255, 220));
             g2d.setFont(new Font("TimesRoman", Font.PLAIN, 30));
             String paused_string = "Press P to resume";
-            Rectangle2D stringBounds = g2d.getFontMetrics().getStringBounds(paused_string, g2d);
-            int startX = PANEL_SIZE / 2 - (int) stringBounds.getWidth() / 2;
-            int startY = PANEL_SIZE / 2 - (int) stringBounds.getHeight() / 2;
-            g2d.drawString(paused_string, startX, startY);
+            drawString(g2d, paused_string, GAME_PANEL_SIZE / 2, GAME_PANEL_SIZE / 2);
         }
+        //Right pane painting
+        g2d.setColor(new Color(255, 255, 255, 255));
+        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 20));
+        drawString(g2d, engine.username, GAME_PANEL_SIZE + RIGHT_PANE_SIZE / 2, GAME_PANEL_SIZE / 2);
+        drawString(g2d, String.valueOf(engine.score), GAME_PANEL_SIZE + RIGHT_PANE_SIZE / 2, GAME_PANEL_SIZE / 2 + 20);
 
+    }
+
+    private void drawString(Graphics2D g2d, String str, int centerX, int centerY) {
+        Rectangle2D stringBounds = g2d.getFontMetrics().getStringBounds(str, g2d);
+        int startX = centerX - (int) stringBounds.getWidth() / 2;
+        int startY = centerY - (int) stringBounds.getHeight() / 2;
+        g2d.drawString(str, startX, startY);
     }
 
     public void swapCandies(Point firstPos, Point secondPos) {

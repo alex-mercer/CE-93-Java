@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -8,10 +9,19 @@ public class GameController implements KeyListener {
     GameBoard panel;
 
     GameEngine engine;
+    JFrame frame;
+
+    public GameController(JFrame frame) {
+        this.frame = frame;
+    }
+
+    public Thread getGameloop() {
+        return gameloop;
+    }
 
     Thread gameloop;
 
-    boolean running = false;
+    boolean should_close = false;
 
     boolean paused = false;
 
@@ -30,9 +40,19 @@ public class GameController implements KeyListener {
                 do {
                     try {
                         engine.processKey();
+                        if (engine.isGameOver()) {
+                            Thread.sleep(2000);
+                            frame.dispose();
+                            if (JOptionPane.showConfirmDialog(null, "You lost\nYour score:" + engine.getScore() + "\nDo you want to play again?",
+                                    "CandyCrush", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                                CocoCrush.createAndShowGui();
+                            }
+                            break;
+                        }
                         Thread.sleep(1000 / FPS);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        //good bye
+                        break;
                     }
                 } while (true);
             }
@@ -59,16 +79,29 @@ public class GameController implements KeyListener {
         panel.repaint();
     }
 
+    public boolean isShould_close() {
+        return should_close;
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_P) {
             GameBoard.paused = !GameBoard.paused;
             return;
         }
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            if (JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?",
+                    "CandyCrush", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                gameloop.interrupt();
+                should_close = true;
+                frame.dispose();
+            }
+        }
         if (engine.locked) {
             return;
         }
-        engine.keyEvent = e;
+        if (!GameBoard.paused)
+            engine.keyEvent = e;
     }
 
     @Override

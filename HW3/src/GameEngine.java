@@ -8,7 +8,7 @@ import java.util.Set;
  * Created by amin on 12/23/14.
  */
 public class GameEngine {
-    public static final int BOARD_SIZE = 9;
+    public static final int BOARD_SIZE = 4;
     int board[][] = new int[BOARD_SIZE][BOARD_SIZE];
     public static final int CANDY_TYPES = 6;
     String username;
@@ -16,6 +16,7 @@ public class GameEngine {
     Point cursor;
     KeyEvent keyEvent = null;
     public boolean locked;
+    private boolean gameOver = false;
 
     public void setGameBoard(GameBoard gameBoard) {
         this.gameBoard = gameBoard;
@@ -25,7 +26,8 @@ public class GameEngine {
     boolean selected = false;
     Random rand = new Random();
 
-    public GameEngine() {
+    public GameEngine(String username) {
+        this.username = username;
         cursor = new Point(0, 0);
         do {
             resetBoard();
@@ -65,7 +67,7 @@ public class GameEngine {
     }
 
     public void processKey() {
-        if (keyEvent == null)
+        if (keyEvent == null || isGameOver())
             return;
         locked = true;
         Point point = new Point(0, 0);
@@ -150,12 +152,13 @@ public class GameEngine {
                 else {
                     while (removedCandies.length > 0) {
                         gameBoard.eatCandies(removedCandies);
+                        score += calculateScore(removedCandies.length);
                         refillBoard();
                         gameBoard.refillBoard();
                         removedCandies = getRemovedCandies();
                     }
                     if(isLost())
-                        System.out.println("Lost!");
+                        gameOver = true;
                 }
                 selected = false;
             }
@@ -165,6 +168,10 @@ public class GameEngine {
             normalizePoint(cursor);
         }
         gameBoard.repaint();
+    }
+
+    private int calculateScore(int number_of_candies) {
+        return (number_of_candies - 2) * 10;
     }
 
     private void refillBoard() {
@@ -203,5 +210,13 @@ public class GameEngine {
 
     public void selectCursor() {
         selected = true;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public int getScore() {
+        return score;
     }
 }

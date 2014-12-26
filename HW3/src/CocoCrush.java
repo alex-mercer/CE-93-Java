@@ -36,37 +36,23 @@ public class CocoCrush {
                 createAndShowGui();
             }
         });
+        System.out.println("Game Started");
     }
 
-    private static void createAndShowGui() {
+    public static void createAndShowGui() {
         JFrame frame = new JFrame("CandyCrush");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        GameEngine engine = new GameEngine();
+        String username = JOptionPane.showInputDialog(frame, "Please enter your name :");
+        if (username.equals(""))
+            username = "Player";
+        GameEngine engine = new GameEngine(username);
         CocoCrush cocoCrush = new CocoCrush();
-        GameController controller = new GameController();
+        final GameController controller = new GameController(frame);
         final GameBoard board = new GameBoard(controller, engine);
         engine.setGameBoard(board);
         cocoCrush.jPanel.addKeyListener(controller);
         cocoCrush.jPanel.add(board);
         frame.setContentPane(cocoCrush.jPanel);
-        Thread gameloop = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (true) {
-                    board.repaint();
-                    try {
-                        Thread.sleep(1000 / 30);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        gameloop.start();
-
         controller.init(board, engine);
         controller.start();
 
