@@ -27,17 +27,14 @@ public class GameController implements KeyListener {
 
             @Override
             public void run() {
-                running = true;
-                while (running) {
-                    engine.processKey();
-
+                do {
                     try {
+                        engine.processKey();
                         Thread.sleep(1000 / FPS);
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                }
+                } while (true);
             }
         });
 
@@ -64,8 +61,13 @@ public class GameController implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (engine.locked)
+        if (e.getKeyCode() == KeyEvent.VK_P) {
+            GameBoard.paused = !GameBoard.paused;
             return;
+        }
+        if (engine.locked) {
+            return;
+        }
         engine.keyEvent = e;
     }
 

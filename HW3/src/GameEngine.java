@@ -8,7 +8,7 @@ import java.util.Set;
  * Created by amin on 12/23/14.
  */
 public class GameEngine {
-    public static final int BOARD_SIZE = 5;
+    public static final int BOARD_SIZE = 9;
     int board[][] = new int[BOARD_SIZE][BOARD_SIZE];
     public static final int CANDY_TYPES = 6;
     String username;

@@ -1,6 +1,7 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -53,8 +54,8 @@ class CandyTile extends JComponent {
             dx /= Math.abs(dx);
         if (dy != 0)
             dy /= Math.abs(dy);
-        dx*=2;
-        dy*=2;
+        dx *= 2;
+        dy *= 2;
         final int finalDy = dy;
         final int finalDx = dx;
         Thread thread = new Thread(new Runnable() {
@@ -62,7 +63,8 @@ class CandyTile extends JComponent {
             public void run() {
 
                 do {
-                    setLocation(getX() + finalDx, getY() + finalDy);
+                    if (!GameBoard.paused)
+                        setLocation(getX() + finalDx, getY() + finalDy);
                     try {
                         Thread.sleep(8);
                     } catch (InterruptedException e) {
@@ -81,8 +83,10 @@ class CandyTile extends JComponent {
             public void run() {
 
                 do {
-                    opacity += 5;
-                    repaint();
+                    if (!GameBoard.paused) {
+                        opacity += 5;
+                        repaint();
+                    }
                     try {
                         Thread.sleep(5);
                     } catch (InterruptedException e) {
@@ -101,6 +105,7 @@ public class GameBoard extends JComponent {
     public static final int PANEL_SIZE = GameEngine.BOARD_SIZE * CandyTile.CANDY_SIZE;
     GameEngine engine;
     CandyTile candyTiles[][];
+    public static boolean paused = false;
     ExecutorService executor = Executors.newFixedThreadPool(2);
 
     GameBoard(final GameController controller, GameEngine engine) {
@@ -150,6 +155,18 @@ public class GameBoard extends JComponent {
             g2d.setColor(new Color(255, 0, 0, 50));
             g2d.fillRect(cursor.x * CandyTile.CANDY_SIZE, cursor.y * CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE);
         }
+        if (GameBoard.paused) {
+            g2d.setColor(new Color(128, 128, 128, 100));
+            g2d.fillRect(0, 0, PANEL_SIZE, PANEL_SIZE);
+            g2d.setColor(new Color(255, 255, 255, 220));
+            g2d.setFont(new Font("TimesRoman", Font.PLAIN, 30));
+            String paused_string = "Press P to resume";
+            Rectangle2D stringBounds = g2d.getFontMetrics().getStringBounds(paused_string, g2d);
+            int startX = PANEL_SIZE / 2 - (int) stringBounds.getWidth() / 2;
+            int startY = PANEL_SIZE / 2 - (int) stringBounds.getHeight() / 2;
+            g2d.drawString(paused_string, startX, startY);
+        }
+
     }
 
     public void swapCandies(Point firstPos, Point secondPos) {
