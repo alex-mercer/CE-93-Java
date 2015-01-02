@@ -2,8 +2,8 @@
  * Created by amin on 1/1/15.
  */
 public class CEArrayList<E> implements CECollection<E> {
-    private Object[] objects=new Object[1];
-    private int size=0;
+    private Object[] objects = new Object[1];
+    private int size = 0;
 
     @Override
     public void add(E a) {
@@ -58,7 +58,7 @@ public class CEArrayList<E> implements CECollection<E> {
             else
                 newSize++;
         }
-        size=newSize;
+        size = newSize;
         return ans;
     }
 
@@ -73,10 +73,10 @@ public class CEArrayList<E> implements CECollection<E> {
     }
 
     @Override
-    public E[] toArray() {
-        E[] ans = (E[]) new Object[size];
+    public Object[] toArray() {
+        Object[] ans = new Object[size];
         for (int i = 0; i < size; i++)
-            ans[i] = (E) objects[i];
+            ans[i] = objects[i];
         return ans;
     }
 

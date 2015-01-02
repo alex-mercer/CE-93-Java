@@ -75,10 +75,10 @@ public class CESet<E> implements CECollection<E> {
     }
 
     @Override
-    public E[] toArray() {
-        E[] ans = (E[]) new Object[size];
+    public Object[] toArray() {
+        Object[] ans = new Object[size];
         for (int i = 0; i < size; i++)
-            ans[i] = (E) objects[i];
+            ans[i] = objects[i];
         return ans;
     }
 }

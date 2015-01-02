@@ -10,5 +10,5 @@ public interface CECollection<E> {
     public E remove (E a);
     public boolean isEmpty();
     public int size();
-    public E[] toArray();
+    public Object[] toArray();
 }
