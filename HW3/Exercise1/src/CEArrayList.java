@@ -86,6 +86,12 @@ public class CEArrayList<E> implements CECollection<E> {
         return (E) objects[index];
     }
 
+    /**
+     * Returns the first position where a is found
+     *
+     * @param a the element to look for
+     * @return the first index that objects[index] is equal to a or -1 if nothing was found
+     */
     public int indexOf(E a) {
         for (int i = 0; i < size; i++) {
             if (objects[i].equals(a))
@@ -94,6 +100,12 @@ public class CEArrayList<E> implements CECollection<E> {
         return -1;
     }
 
+    /**
+     * Swaps two elements with indexes i and j
+     * @param i the first index
+     * @param j the second index
+     * @throws CEArrayListIndexOutOfBoundException if i or j are out of bound
+     */
     public void swap(int i, int j) throws CEArrayListIndexOutOfBoundException {
         if (i < 0 || i >= size || j < 0 || j >= size)
             throw new CEArrayListIndexOutOfBoundException();

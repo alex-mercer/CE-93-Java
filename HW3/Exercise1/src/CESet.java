@@ -5,6 +5,10 @@ public class CESet<E> implements CECollection<E> {
     private Object[] objects = new Object[1];
     private int size = 0;
 
+    /**
+     * Add an element to the set if it doesn't exist
+     * @param a the element to add
+     */
     @Override
     public void add(E a) {
         if (contain(a))

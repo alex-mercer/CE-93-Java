@@ -46,31 +46,26 @@ class MyInteger extends Number implements CEComparable<MyInteger> {
 
     @Override
     public String toString() {
-        return "MyInteger{" +
-                "value=" + value +
-                '}';
+        return String.valueOf(value);
     }
 }
 
 public class Main {
 
     public static void main(String[] args) {
-        CESortedArrayList<MyInteger> tst = new CESortedArrayList<MyInteger>();
-        tst.add(new MyInteger(43));
-        tst.add(new MyInteger(43));
-        tst.add(new MyInteger(42));
-        tst.add(new MyInteger(45));
+        CEArrayList<MyInteger> tst = new CEArrayList<MyInteger>();
+        tst.add(new MyInteger(4));
+        tst.add(new MyInteger(3));
+        tst.add(new MyInteger(1));
+        tst.add(new MyInteger(2));
+        tst.add(new MyInteger(1));
         System.out.println(tst.get(0));
         System.out.println(tst.size());
-        tst.remove(new MyInteger(43));
-        tst.add(new MyInteger(49));
-        tst.add(new MyInteger(51));
-        tst.add(new MyInteger(46));
-        for (int i = 0; i < tst.size(); i++) {
-            System.out.println(tst.get(i));
-        }
-//        System.out.println(tst.indexOf(new MyInteger(42)));
-//        System.out.println(tst.indexOf(new MyInteger(46)));
-//        System.out.println(tst.size());
+        tst.remove(new MyInteger(2));
+        tst.add(new MyInteger(6));
+        tst.add(new MyInteger(6));
+        tst.add(new MyInteger(8));
+        for (Object number : tst.toArray())
+            System.out.println(number);
     }
 }
