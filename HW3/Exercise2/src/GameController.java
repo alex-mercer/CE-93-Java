@@ -40,6 +40,7 @@ public class GameController implements KeyListener {
                 do {
                     try {
                         engine.processKey();
+                        engine.processMouse();
                         if (engine.isGameOver()) {
                             Thread.sleep(2000);
                             frame.dispose();
@@ -87,6 +88,7 @@ public class GameController implements KeyListener {
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_P) {
             GameBoard.paused = !GameBoard.paused;
+            panel.repaint();
             return;
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {

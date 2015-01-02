@@ -1,6 +1,8 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -16,7 +18,7 @@ class CandyTile extends JComponent {
     static {
         try {
             for (int i = 0; i < GameEngine.CANDY_TYPES; i++)
-                candyImages[i] = ImageIO.read(new File("/home/amin/Desktop/Courses/Advanced Programming/CE-93-Java/HW3/src/t" + (i + 1) + ".png"));
+                candyImages[i] = ImageIO.read(new File("src/images/t" + (i + 1) + ".png"));
         } catch (IOException e) {
 
         }
@@ -26,14 +28,42 @@ class CandyTile extends JComponent {
     //    int width, height
     int type;
     int opacity;
+    GameEngine engine;
 
-    CandyTile(int x, int y, int type) {
+    CandyTile(int x, int y, int type, final GameEngine engine) {
         this.x = x;
         this.y = y;
         this.type = type;
         opacity = 0;
+        this.engine = engine;
         setBounds(x * CANDY_SIZE, y * CANDY_SIZE, CANDY_SIZE, CANDY_SIZE);
+        addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                Point newPoint = new Point(CandyTile.this.x, CandyTile.this.y);
+                engine.mouseCursor = newPoint;
+            }
 
+            @Override
+            public void mousePressed(MouseEvent mouseEvent) {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent mouseEvent) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent mouseEvent) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent mouseEvent) {
+
+            }
+        });
     }
 
     @Override
@@ -47,6 +77,8 @@ class CandyTile extends JComponent {
     }
 
     public Thread moveToPos(Point pos) {
+        x=pos.x;
+        y=pos.y;
         final Point newPos = new Point(pos.x * CANDY_SIZE, pos.y * CANDY_SIZE);
         int dx = newPos.x - getX();
         int dy = newPos.y - getY();
@@ -120,7 +152,7 @@ public class GameBoard extends JComponent {
         candyTiles = new CandyTile[GameEngine.BOARD_SIZE][GameEngine.BOARD_SIZE];
         for (int i = 0; i < GameEngine.BOARD_SIZE; i++)
             for (int j = 0; j < GameEngine.BOARD_SIZE; j++) {
-                candyTiles[i][j] = new CandyTile(i, j, engine.getBoard()[i][j]);
+                candyTiles[i][j] = new CandyTile(i, j, engine.getBoard()[i][j], engine);
                 add(candyTiles[i][j]);
 //                System.out.println(candyTiles[i][j]);
             }
@@ -158,8 +190,7 @@ public class GameBoard extends JComponent {
             g2d.setColor(new Color(255, 0, 0, 50));
             g2d.fillRect(cursor.x * CandyTile.CANDY_SIZE, cursor.y * CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE);
         }
-        if(engine.isGameOver())
-        {
+        if (engine.isGameOver()) {
             g2d.setColor(new Color(128, 128, 128, 100));
             g2d.fillRect(0, 0, GAME_PANEL_SIZE, GAME_PANEL_SIZE);
             g2d.setColor(new Color(255, 255, 255, 220));
@@ -245,7 +276,7 @@ public class GameBoard extends JComponent {
             }
             for (int j = GameEngine.BOARD_SIZE - 1; j >= 0; j--) {
                 if (candyTiles[i][j] == null) {
-                    candyTiles[i][j] = new CandyTile(i, j - emptyCount, engine.board[i][j]);
+                    candyTiles[i][j] = new CandyTile(i, j - emptyCount, engine.board[i][j], engine);
                     add(candyTiles[i][j]);
                     threads.add(candyTiles[i][j].moveToPos(new Point(i, j)));
                 }

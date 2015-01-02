@@ -8,12 +8,13 @@ import java.util.Set;
  * Created by amin on 12/23/14.
  */
 public class GameEngine {
-    public static final int BOARD_SIZE = 4;
+    public static final int BOARD_SIZE = 9;
     int board[][] = new int[BOARD_SIZE][BOARD_SIZE];
     public static final int CANDY_TYPES = 6;
     String username;
     int score;
     Point cursor;
+    Point mouseCursor = null;
     KeyEvent keyEvent = null;
     public boolean locked;
     private boolean gameOver = false;
@@ -89,8 +90,12 @@ public class GameEngine {
                 point = null;
                 break;
         }
-        if (point != null)
-            moveCursor(point);
+        if (point != null) {
+
+            Point newPoint = new Point(this.cursor);
+            newPoint.translate(point.x, point.y);
+            moveCursor(newPoint);
+        }
         keyEvent = null;
         locked = false;
     }
@@ -136,12 +141,10 @@ public class GameEngine {
         point.setLocation(normalize((int) point.getX()), normalize((int) point.getY()));
     }
 
-    public void moveCursor(Point point) {
+    public void moveCursor(Point newPoint) {
         if (isSelected()) {
-            Point newPoint = new Point(this.cursor);
-            newPoint.translate(point.x, point.y);
             normalizePoint(newPoint);
-            if (!newPoint.equals(this.cursor)) {
+            if (!newPoint.equals(this.cursor) && Math.abs(cursor.x - newPoint.x) + Math.abs(cursor.y - newPoint.y) == 1) {
                 gameBoard.swapCandies(this.cursor, newPoint);
                 swapCandies(newPoint);
                 Point[] removedCandies = getRemovedCandies();
@@ -153,6 +156,7 @@ public class GameEngine {
                     while (removedCandies.length > 0) {
                         gameBoard.eatCandies(removedCandies);
                         score += calculateScore(removedCandies.length);
+                        gameBoard.repaint();
                         refillBoard();
                         gameBoard.refillBoard();
                         removedCandies = getRemovedCandies();
@@ -164,7 +168,7 @@ public class GameEngine {
             }
         }
         else {
-            cursor.translate(point.x, point.y);
+            cursor = newPoint;
             normalizePoint(cursor);
         }
         gameBoard.repaint();
@@ -218,5 +222,19 @@ public class GameEngine {
 
     public int getScore() {
         return score;
+    }
+
+    public void processMouse() {
+        if (mouseCursor == null || isGameOver())
+            return;
+        locked = true;
+        if (isSelected())
+            moveCursor(new Point(mouseCursor));
+        else {
+            moveCursor(new Point(mouseCursor));
+            selectCursor();
+        }
+        mouseCursor = null;
+        locked = false;
     }
 }
