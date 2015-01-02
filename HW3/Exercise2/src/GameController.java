@@ -15,23 +15,16 @@ public class GameController implements KeyListener {
         this.frame = frame;
     }
 
-    public Thread getGameloop() {
-        return gameloop;
-    }
-
     Thread gameloop;
-
-    boolean should_close = false;
-
-    boolean paused = false;
-
-    private boolean downKey;
 
     public void init(GameBoard panel, GameEngine engine) {
         this.panel = panel;
         this.engine = engine;
     }
 
+    /**
+     * Starts the main game loop
+     */
     public void start() {
         gameloop = new Thread(new Runnable() {
 
@@ -62,28 +55,11 @@ public class GameController implements KeyListener {
         gameloop.start();
     }
 
-    private void gameUpdate() {
-//        try {
-//            engine.update();
-//            if (downKey) {
-//                for (int i = 0; i < 6; i++) {
-//                    engine.update();
-//                }
-//            }
-//        } catch (GameOverException e) {
-//            running = false;
-//            panel.showGameOverMessage();
-//        }
-    }
-
-    private void gameRender() {
-        panel.repaint();
-    }
-
-    public boolean isShould_close() {
-        return should_close;
-    }
-
+    /**
+     * Handles key press if it's related to game logic it's passed to game engine otherwise handled directly
+     *
+     * @param e
+     */
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_P) {
@@ -95,7 +71,6 @@ public class GameController implements KeyListener {
             if (JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?",
                     "CandyCrush", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                 gameloop.interrupt();
-                should_close = true;
                 frame.dispose();
             }
         }
@@ -108,26 +83,11 @@ public class GameController implements KeyListener {
 
     @Override
     public void keyReleased(KeyEvent keyEvent) {
-
     }
 
 
     @Override
     public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
-
-    }
-
-    public boolean isPaused() {
-        return paused;
-    }
-
-    public void pause() {
-        paused = true;
-    }
-
-    public void resume() {
-        paused = false;
     }
 
 }

@@ -34,7 +34,7 @@ public interface CECollection<E> {
     public boolean isEmpty();
 
     /**
-     * 
+     *
      * @return an integer which is the size of collection
      */
     public int size();

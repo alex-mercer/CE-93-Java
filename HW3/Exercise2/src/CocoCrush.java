@@ -6,29 +6,7 @@ import java.awt.*;
  */
 public class CocoCrush {
 
-    //    public static void main(String[] args) throws IOException {
-//        JFrame frame = new JFrame("CocoCrush");
-//        frame.setContentPane(new CocoCrush().jPanel);
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        frame.pack();
-//        frame.setVisible(true);
-//
-//        GameController controller = new GameController();
-//
-//        panel.init (controller, engine);
-//        controller.init (panel, engine);
-//        controller.start ();
-//
-//    }
     JPanel jPanel;
-
-//    public static void main(String[] args) {
-//        JFrame frame = new JFrame("CocoCrush");
-//        frame.setContentPane(new CocoCrush().jPanel);
-//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        frame.pack();
-//        frame.setVisible(true);
-//}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {

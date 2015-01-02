@@ -15,6 +15,7 @@ class CandyTile extends JComponent {
     public static final int CANDY_SIZE = 60;
     private static BufferedImage candyImages[] = new BufferedImage[GameEngine.CANDY_TYPES];
 
+    // Loading the candy images
     static {
         try {
             for (int i = 0; i < GameEngine.CANDY_TYPES; i++)
@@ -25,7 +26,6 @@ class CandyTile extends JComponent {
     }
 
     int x, y;
-    //    int width, height
     int type;
     int opacity;
     GameEngine engine;
@@ -76,6 +76,12 @@ class CandyTile extends JComponent {
         g2d.fillRect(0, 0, CANDY_SIZE, CANDY_SIZE);
     }
 
+    /**
+     * Moves the CandyTile to the new pos with a smooth transition
+     *
+     * @param pos the new position
+     * @return a thread which is handling the displacement in order to join it with other threads
+     */
     public Thread moveToPos(Point pos) {
         x=pos.x;
         y=pos.y;
@@ -109,6 +115,11 @@ class CandyTile extends JComponent {
         return thread;
     }
 
+    /**
+     * Destroys the CandyTile and make it fade away
+     *
+     * @return the thread which is handling the fading in order to join with other threads
+     */
     public Thread eat() {
         Thread thread = new Thread(new Runnable() {
             @Override
@@ -144,8 +155,6 @@ public class GameBoard extends JComponent {
     ExecutorService executor = Executors.newFixedThreadPool(2);
 
     GameBoard(final GameController controller, GameEngine engine) {
-//        setFocusable(true);
-//        requestFocus();
         setPreferredSize(new Dimension(PANEL_SIZE_WIDTH, PANEL_SIZE_HEIGHT));
         setBounds(0, 0, PANEL_SIZE_WIDTH, PANEL_SIZE_HEIGHT);
         this.engine = engine;
@@ -154,14 +163,9 @@ public class GameBoard extends JComponent {
             for (int j = 0; j < GameEngine.BOARD_SIZE; j++) {
                 candyTiles[i][j] = new CandyTile(i, j, engine.getBoard()[i][j], engine);
                 add(candyTiles[i][j]);
-//                System.out.println(candyTiles[i][j]);
             }
 
     }
-
-    //
-//
-
 
     @Override
     public void paint(Graphics g) {
@@ -175,13 +179,10 @@ public class GameBoard extends JComponent {
 
     @Override
     protected void paintComponent(Graphics g) {
-//        super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
-        //Drawing candies
-        int[][] board = engine.getBoard();
-        int boardSize = GameEngine.BOARD_SIZE;
+        //Drawing cursor
         g2d.setStroke(new BasicStroke(3));
         g2d.setColor(new Color(255, 0, 0));
         Point cursor = engine.cursor;
@@ -190,6 +191,8 @@ public class GameBoard extends JComponent {
             g2d.setColor(new Color(255, 0, 0, 50));
             g2d.fillRect(cursor.x * CandyTile.CANDY_SIZE, cursor.y * CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE, CandyTile.CANDY_SIZE);
         }
+
+        //Game over handling
         if (engine.isGameOver()) {
             g2d.setColor(new Color(128, 128, 128, 100));
             g2d.fillRect(0, 0, GAME_PANEL_SIZE, GAME_PANEL_SIZE);
@@ -198,6 +201,8 @@ public class GameBoard extends JComponent {
             String paused_string = "Game Over!";
             drawString(g2d, paused_string, GAME_PANEL_SIZE / 2, GAME_PANEL_SIZE / 2);
         }
+
+        //Game paused handling
         else if (GameBoard.paused) {
             g2d.setColor(new Color(128, 128, 128, 100));
             g2d.fillRect(0, 0, GAME_PANEL_SIZE, GAME_PANEL_SIZE);
@@ -206,6 +211,7 @@ public class GameBoard extends JComponent {
             String paused_string = "Press P to resume";
             drawString(g2d, paused_string, GAME_PANEL_SIZE / 2, GAME_PANEL_SIZE / 2);
         }
+
         //Right pane painting
         g2d.setColor(new Color(255, 255, 255, 255));
         g2d.setFont(new Font("TimesRoman", Font.PLAIN, 20));
@@ -214,6 +220,14 @@ public class GameBoard extends JComponent {
 
     }
 
+    /**
+     * Convenient function to draw a string centered in an arbitrary position
+     *
+     * @param g2d     Graphics2D to draw in
+     * @param str     string to draw
+     * @param centerX X coordinate of the position
+     * @param centerY Y coordinate of the position
+     */
     private void drawString(Graphics2D g2d, String str, int centerX, int centerY) {
         Rectangle2D stringBounds = g2d.getFontMetrics().getStringBounds(str, g2d);
         int startX = centerX - (int) stringBounds.getWidth() / 2;
@@ -221,6 +235,12 @@ public class GameBoard extends JComponent {
         g2d.drawString(str, startX, startY);
     }
 
+    /**
+     * Renders the animation of swapping two candies
+     *
+     * @param firstPos  position of the first candy
+     * @param secondPos position of the second candy
+     */
     public void swapCandies(Point firstPos, Point secondPos) {
         CandyTile first = candyTiles[firstPos.x][firstPos.y];
         CandyTile second = candyTiles[secondPos.x][secondPos.y];
@@ -236,10 +256,15 @@ public class GameBoard extends JComponent {
         }
     }
 
+    /**
+     * Renders the animation of eating candies
+     *
+     * @param candies position of the candies to be eaten and faded away
+     */
     public void eatCandies(Point[] candies) {
         ArrayList<Thread> threads = new ArrayList<Thread>();
-        for (int i = 0; i < candies.length; i++)
-            threads.add(candyTiles[candies[i].x][candies[i].y].eat());
+        for (Point candy : candies)
+            threads.add(candyTiles[candy.x][candy.y].eat());
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -247,12 +272,15 @@ public class GameBoard extends JComponent {
                 e.printStackTrace();
             }
         }
-        for (int i = 0; i < candies.length; i++) {
-            remove(candyTiles[candies[i].x][candies[i].y]);
-            candyTiles[candies[i].x][candies[i].y] = null;
+        for (Point candy : candies) {
+            remove(candyTiles[candy.x][candy.y]);
+            candyTiles[candy.x][candy.y] = null;
         }
     }
 
+    /**
+     * Renders the animation of new candies dropping down form top of the board
+     */
     public void refillBoard() {
         ArrayList<Thread> threads = new ArrayList<Thread>();
         for (int i = 0; i < GameEngine.BOARD_SIZE; i++) {

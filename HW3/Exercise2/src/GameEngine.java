@@ -27,6 +27,11 @@ public class GameEngine {
     boolean selected = false;
     Random rand = new Random();
 
+    /**
+     * Creates the game and generates a board that is valid
+     *
+     * @param username the name of the palyer
+     */
     public GameEngine(String username) {
         this.username = username;
         cursor = new Point(0, 0);
@@ -42,14 +47,18 @@ public class GameEngine {
 
     }
 
+    /**
+     * Checks if any valid move is left to do
+     * @return true if the player can still continue, false otherwise
+     */
     private boolean isLost() {
-        boolean answer=true;
+        boolean answer = true;
         for (int i = 0; i < BOARD_SIZE; i++)
             for (int j = 0; j < BOARD_SIZE - 1; j++) {
                 Point p1 = new Point(i, j), p2 = new Point(i, j + 1);
                 swapCandies(p1, p2);
                 if (getRemovedCandies().length > 0)
-                    answer=false;
+                    answer = false;
                 swapCandies(p1, p2);
             }
         for (int i = 0; i < BOARD_SIZE - 1; i++)
@@ -57,7 +66,7 @@ public class GameEngine {
                 Point p1 = new Point(i, j), p2 = new Point(i + 1, j);
                 swapCandies(p1, p2);
                 if (getRemovedCandies().length > 0)
-                    answer=false;
+                    answer = false;
                 swapCandies(p1, p2);
             }
         return answer;
@@ -67,6 +76,9 @@ public class GameEngine {
         for (int i = 0; i < BOARD_SIZE; i++) for (int j = 0; j < BOARD_SIZE; j++) board[i][j] = -1;
     }
 
+    /**
+     * process the key even passed by game controller
+     */
     public void processKey() {
         if (keyEvent == null || isGameOver())
             return;
@@ -100,6 +112,23 @@ public class GameEngine {
         locked = false;
     }
 
+    /**
+     * Processes mouse events created by clicking on candy tiles
+     */
+    public void processMouse() {
+        if (mouseCursor == null || isGameOver())
+            return;
+        locked = true;
+        if (isSelected())
+            moveCursor(new Point(mouseCursor));
+        else {
+            moveCursor(new Point(mouseCursor));
+            selectCursor();
+        }
+        mouseCursor = null;
+        locked = false;
+    }
+
     public boolean isSelected() {
         return selected;
     }
@@ -108,6 +137,11 @@ public class GameEngine {
         return board;
     }
 
+    /**
+     * Calculates the candies that should be removed
+     *
+     * @return an array containing position of candies that should be removed
+     */
     private Point[] getRemovedCandies() {
         Set<Point> points = new HashSet<Point>();
         for (int i = 0; i < BOARD_SIZE; i++)
@@ -141,6 +175,11 @@ public class GameEngine {
         point.setLocation(normalize((int) point.getX()), normalize((int) point.getY()));
     }
 
+    /**
+     * moves the cursor to the new position or swap the candy under the current position of the cursor with the new position if the cursor is selected
+     *
+     * @param newPoint the new position of the cursor
+     */
     public void moveCursor(Point newPoint) {
         if (isSelected()) {
             normalizePoint(newPoint);
@@ -161,7 +200,7 @@ public class GameEngine {
                         gameBoard.refillBoard();
                         removedCandies = getRemovedCandies();
                     }
-                    if(isLost())
+                    if (isLost())
                         gameOver = true;
                 }
                 selected = false;
@@ -178,6 +217,9 @@ public class GameEngine {
         return (number_of_candies - 2) * 10;
     }
 
+    /**
+     * Refills the board by creating new random candies
+     */
     private void refillBoard() {
         for (Point p : getRemovedCandies())
             board[p.x][p.y] = -1;
@@ -201,12 +243,22 @@ public class GameEngine {
         }
     }
 
+    /**
+     * Swaps two candies
+     *
+     * @param oldPoint position of the first candy
+     * @param newPoint position of the second candy
+     */
     private void swapCandies(Point oldPoint, Point newPoint) {
         int tmp = board[newPoint.x][newPoint.y];
         board[newPoint.x][newPoint.y] = board[oldPoint.x][oldPoint.y];
         board[oldPoint.x][oldPoint.y] = tmp;
     }
 
+    /**
+     * Convenient function for swapping candies
+     * @param oldPoint position of the first candy
+     */
     private void swapCandies(Point oldPoint) {
         swapCandies(oldPoint, cursor);
     }
@@ -224,17 +276,4 @@ public class GameEngine {
         return score;
     }
 
-    public void processMouse() {
-        if (mouseCursor == null || isGameOver())
-            return;
-        locked = true;
-        if (isSelected())
-            moveCursor(new Point(mouseCursor));
-        else {
-            moveCursor(new Point(mouseCursor));
-            selectCursor();
-        }
-        mouseCursor = null;
-        locked = false;
-    }
 }
