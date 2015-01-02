@@ -266,6 +266,7 @@ public class GameEngine {
 
     public void selectCursor() {
         selected = true;
+        gameBoard.repaint();
     }
 
     public boolean isGameOver() {

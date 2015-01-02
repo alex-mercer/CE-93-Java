@@ -20,7 +20,7 @@ public class CocoCrush {
     public static void createAndShowGui() {
         JFrame frame = new JFrame("CandyCrush");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        String username = JOptionPane.showInputDialog(frame, "Please enter your name :");
+        String username = JOptionPane.showInputDialog(frame, "Please enter your name :", "CandyCrush", JOptionPane.PLAIN_MESSAGE);
         if (username.equals(""))
             username = "Player";
         GameEngine engine = new GameEngine(username);
