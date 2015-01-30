@@ -1,4 +1,5 @@
 CE-93-Java
 ==========
+CE-93 1st Semester Advanced Programming Course Homeworks
 
-CE 93 1st Semester Java Homeworks
+![Candycrush](http://media.alex-mercer.com/images/candycrush.png)
